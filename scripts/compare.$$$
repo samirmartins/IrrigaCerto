@@ -1,0 +1,408 @@
+Comparing C:\Users\User\Desktop\LAP2\Rotinas_PIC\Projeto_novo\Projeto_LAP2.c and C:\Users\User\Desktop\LAP2\Rotinas_PIC\Projeto_novo_Cópia_Versao_funcionando\Projeto_LAP2.c
+  //------------------------------------------------------------------------------
+  // Essa Rotina é responsável pelo controle do sistema de irrigação inteligente
+  // "Irrigacerto"
+  // Data Início:13/05/2010              Data Término: ??/??/2010
+  // Programadores:   João Paulo Vieira
+  //                  Samir Angelo Milani Martins
+  //------------------------------------------------------------------------------
+  #include <16F877A.h> // Inclui arquivo de definições do microcontrolador
+  #device ADC=10;      // Configurando AD para 10 bits
+  #use delay(clock=20000000) //Definindo clock do microcontrolador
+  #FUSES NOWDT,HS,NOPUT,NOPROTECT,NODEBUG,NOBROWNOUT,NOLVP,NOCPD,NOWRT
+  #include "C:\Users\User\Desktop\LAP2\Rotinas_PIC\Projeto_novo\driver_lcd.c" // Incluindo arquivo com driver do LCD
+  #use rs232(baud=19200, parity=N, xmit=PIN_C6,rcv=PIN_C7)
+  
+  
+  #define tcl_enter       (!input(PIN_E0))
+D <! #define tcl_baixo       (!input(PIN_E1))
+D <! #define tcl_cima        (!input(PIN_E2))
+I !> #define tcl_baixo       (!input(PIN_D3))
+I !> #define tcl_cima        (!input(PIN_A2))
+  #define liga_bomb       output_high(pin_D0)
+  #define des_bomb        output_low(pin_D0)
+  #define abre_valv       output_high(pin_D1)
+  #define fecha_valv      output_low(pin_D1)
+  #define LED                PIN_D2
+  #define state_cima            1
+  #define state_baixo           2
+  #define state_enter           3
+D <! #define debounce              5
+I !> #define debounce             5
+  
+  void  update_display(void);
+D <! void check_buttons(void);
+D <! int16 read_AD(int ch);
+I !> int check_buttons(void);
+I !> int16 read_adc(int ch);
+  
+D <! unsigned int16 AD0;
+D <! float umi;
+  int state=1;
+I !> //int16 vt;
+  int1 tcl_cima_press=0,tcl_baixo_press=0,tcl_enter_press=0;
+  int8 filtro1=debounce;
+  int8 filtro3=debounce;
+  int8 filtro2=debounce;
+  
+D <! void check_buttons(void)
+I !> int check_buttons(void)
+  {
+  //------------------------------------------------------------------------------
+  // ENTRADA1-Tcl_acima
+  //------------------------------------------------------------------------------
+  if(tcl_cima)     // Relativo ao pino Pino A2 do PIC
+  {
+  if(!(tcl_cima_press))   // Flag indicando se botão foi pressionado
+  {
+  if(filtro1!=0)      // valor do debounce
+  {
+  filtro1--;
+  }
+  else
+  {
+  tcl_cima_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+D <! 
+I !> return  state_cima;
+  }
+  }
+  }
+  else
+  {
+  filtro1=debounce;
+  tcl_cima_press=0;
+I !> return 0;
+  }
+I !> 
+  //------------------------------------------------------------------------------
+  // ENTRADA2-tcl_baixo
+  //------------------------------------------------------------------------------
+  if(tcl_baixo)     // Relativo ao pino Pino A3 do PIC
+D <! 
+  {
+  if(!(tcl_baixo_press))   // Flag indicando se botão foi pressionado
+  {
+  if(filtro2!=0)      // valor do debounce
+  {
+  filtro2--;
+  }
+  else
+  {
+  tcl_baixo_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+D <! 
+I !> return state_baixo;
+  }
+D <! output_low(LED);
+  }
+D <! 
+  }
+  else
+  {
+  filtro2=debounce;
+  tcl_baixo_press=0;
+D <! 
+I !> return 0;
+  }
+  //------------------------------------------------------------------------------
+  // ENTRADA3-tcl_enter
+  //------------------------------------------------------------------------------
+  if (tcl_enter)     // Relativo ao pino Pino A4 do PIC
+  {
+  if(!(tcl_enter_press))   // Flag indicando se botão foi pressionado
+  {
+  if(filtro3!=0)      // valor do debounce
+  {
+  filtro3--;
+  }
+  else
+  {
+  tcl_enter_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+D <! 
+I !> return state_enter;
+  }
+  }
+  }
+  else
+  {
+D <! filtro3=debounce;
+I !> filtro2=debounce;
+  tcl_enter_press=0;
+I !> return 0;
+  }
+  }
+  
+D <! //------------------------------------------------------------------------------
+D <! // Função que lê entrada analógica do PIC
+D <! //------------------------------------------------------------------------------
+D <! int16 read_AD(int ch)
+D <! {
+D <! int16 temp;
+D <! set_adc_channel(ch);
+D <! delay_us(40);
+D <! temp=read_adc();
+D <! return temp;
+D <! }
+  
+D <! //------------------------------------------------------------------------------
+D <! // Função que lê entrada analógica do PIC
+D <! //------------------------------------------------------------------------------
+D <! 
+  /*void update_display(void)
+  {
+  switch(state){
+  case 1:
+D <! printf(lcd_putc, "\f Sistema Controle \n Irriga Certo ");
+D <! if(tcl_enter_press)
+I !> printf(lcd_putc, "\f Sistema Controle \n de Umidade ");
+I !> if(check_buttons()==state_enter)
+  state =2;      ///Aponta para o próximo estado
+  
+  break; // Sai do switch
+  case 2:
+D <! printf(lcd_putc, " \f Temperatura= %2.2f",tempamb);
+D <! //Verificação da transição para próximo estado
+D <! if(tcl_enter_press)
+D <! {
+D <! // Apontando para proximo estado
+D <! state=3;
+I !> printf(lcd_putc, " \f Umi= %Ld \n",vt);
+I !> // Next state selection.
+I !> if(check_buttons()==state_baixo){
+I !> // Pointing to the next state.
+I !> state=1;
+  }
+I !> 
+  break;
+  //}else if(key == right){   // [2].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_21;
+  //}else if(key == down){   // [3].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_3;
+  //}
+  //break;
+  //case i_STATE_21:
+  // State actions (Moore).
+  //  WriteLCD("Submenu 1");
+  // Next state selection.
+  //if(key == left){   // [1].
+  // Pointing to the next state.
+  // ind_FSM_0001 = i_STATE_2;
+  //}else if(key == ok){   // [2].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_22;
+  // }
+  // break;
+  // case i_STATE_22:
+  // State actions (Moore).
+  //    ExecuteSubMenu1();
+  // Next state selection.
+  // {
+  // Pointing to the next state.
+  //      ind_FSM_0001 = i_STATE_1;
+  // }
+  //break;
+  //case i_STATE_3:
+  // State actions (Moore).
+  //  WriteLCD("Menu2");
+  // Next state selection.
+  //if(key == up){   // [1].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_2;
+  //}else if(key == down){   // [2].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_1;
+  //}else if(key == right){   // [3].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_31;
+  // }
+  //break;
+  //case i_STATE_31:
+  // State actions (Moore).
+  //  WriteLCD("Submenu 2");
+  // Next state selection.
+  //if(key == left){   // [1].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_3;
+  //}else if(key == ok){   // [2].
+  // Pointing to the next state.
+  //  ind_FSM_0001 = i_STATE_32;
+  // }
+  //break;
+  //case i_STATE_32:
+  // State actions (Moore).
+  //  ExecuteSubmenu2();
+  // Next state selection.
+  //{
+  // Pointing to the next state.
+  //    ind_FSM_0001 = i_STATE_1;
+  //}
+  // break;
+  // }
+  */
+  
+  
+  
+  void main(void)
+I !> {
+I !> float  umi;
+I !> 
+I !> int8 menu, temp=0;
+I !> 
+I !> setup_adc(ADC_CLOCK_INTERNAL);
+I !> setup_adc_ports(AN0_AN1_AN3);
+I !> // Tensão da entrada analógica 0- sensor de umidade
+I !> //int vin1;  // Tensão da entrada analógica 1- sensor de temperatura
+I !> 
+I !> lcd_init(); // Inicializando LCD
+I !> 
+I !> set_adc_channel(0);
+I !> for(;;)
+  {
+I !> 
+I !> 
+I !> //------------------------------------------------------------------------------
+I !> // ENTRADA1-Tcl_acima
+  //------------------------------------------------------------------------------
+D <! // Inicializações
+I !> if(tcl_cima)     // Relativo ao pino Pino A2 do PIC
+I !> {
+I !> if(!(tcl_cima_press))   // Flag indicando se botão foi pressionado
+I !> {
+I !> if(filtro1!=0)      // valor do debounce
+I !> {
+I !> filtro1--;
+I !> }
+I !> else
+I !> {
+I !> tcl_cima_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+I !> 
+I !> }
+I !> }
+I !> }
+I !> else
+I !> {
+I !> filtro1=debounce;
+I !> tcl_cima_press=0;
+I !> 
+I !> }
+I !> 
+I !> //------------------------------------------------------------------------------
+I !> // ENTRADA2-tcl_baixo
+  //------------------------------------------------------------------------------
+I !> if(tcl_baixo)     // Relativo ao pino Pino A3 do PIC
+I !> 
+I !> {
+I !> if(!(tcl_baixo_press))   // Flag indicando se botão foi pressionado
+I !> {
+I !> if(filtro2!=0)      // valor do debounce
+I !> {
+I !> filtro2--;
+I !> }
+I !> else
+I !> {
+I !> tcl_baixo_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+I !> 
+I !> }
+I !> output_low(LED);
+I !> }
+I !> 
+I !> }
+I !> else
+I !> {
+I !> filtro2=debounce;
+I !> tcl_baixo_press=0;
+  
+D <! setup_adc(ADC_CLOCK_INTERNAL);
+D <! setup_adc_ports(AN0_AN1_AN3); //Inicializando conversores A/D do PIC para portas A0,A1 e A3
+D <! lcd_init(); // Inicializando LCD
+I !> }
+I !> 
+  
+  //------------------------------------------------------------------------------
+D <! // Declaração de variáveis
+I !> // ENTRADA3-tcl_enter
+  //------------------------------------------------------------------------------
+D <! for(;;)
+I !> if (tcl_enter)     // Relativo ao pino Pino A4 do PIC
+I !> {
+I !> if(!(tcl_enter_press))   // Flag indicando se botão foi pressionado
+I !> {
+I !> if(filtro3!=0)      // valor do debounce
+I !> {
+I !> filtro3--;
+I !> }
+I !> else
+  {
+I !> tcl_enter_press=1;  //  flag que indica se botao foi pressionado ou nao depois do filtro
+  
+D <! if(tcl_cima_press)
+I !> }
+I !> }
+I !> }
+I !> else
+I !> {
+I !> filtro3=debounce;
+I !> tcl_enter_press=0;
+I !> 
+I !> }
+I !> if(tcl_enter_press)
+  output_high(LED);
+  
+  
+D <! if(tcl_baixo_press)
+I !> //if(tcl_cima_press)
+I !> // output_low(LED);
+I !> 
+I !> 
+I !> // if (tcl_enter)
+I !> //{
+  output_low(LED);
+D <! 
+D <! AD0=read_AD(0);//Lendo a tensao na presente no capacitor de Hold, nesse instante entrada AN0 está desconectado do capacitor de Hold
+D <! umi=AD0*(5.0/1023);  //20 valor de conversao para unidade de engenharia, colocar aki curva de calibração
+D <! // Converte resultado de 0 a 1023 em 0 a 5 V
+I !> //  if(tcl_enter)
+I !> //   output_low(LED);
+I !> //}
+I !> // Ligando canal AN0 no conversor A/D
+I !> delay_us(100);
+I !> //vt = read_adc();  // Lendo a tensao na presente no capacitor de Hold, nesse instante entrada AN0 está desconectado do capacitor de Hold
+I !> //umi=(vt/1023)*5;  //20 valor de conversao para unidade de engenharia, colocar aki curva de calibração
+  //set_adc_channel(1);  // Ligando canal AN1 no conversor A/D
+  //delay_us(100);       // Esperando tempo de carga do capacitor de Hold
+  //vin1=read_adc();     // Lendo a tensao na presente no capacitor de Hold, nesse instante entrada AN1 está desconectado do capacitor de Hold
+  //lcd_putc("Umidade do solo=\n");
+  //lcd_putc(umi);
+  //lcd_putc("fudeu\n");
+  
+  //printf(lcd_putc, " \f Umi= %f \n",umi);
+  //lcd_putc(" Uidade do solo=\n");  // %u\n",umi); // Escrevendo valor da umidade na primeira linha do display
+  //lcd_putc(umi); //Escrevendo valor da temperatura na segunda linha do display
+  //printf(lcd_putc," A/D= %Ld\n", vt);
+  
+  //if (vt> 1000)  output_high(pin_D0);
+  //else  output_low(pin_D0);
+  
+  // delay_ms(120);        // Esperando tempo de carga do capacitor de Hold
+  //update_display();
+D <! check_buttons();
+D <! if (tcl_cima_press) printf(lcd_putc,"\f%1.3f~ vols  \n no AD0= %Ld",umi, AD0);
+D <! //if (tcl_cima_press) printf(lcd_putc,"\f %Lu",AD0);
+D <! // printf(lcd_putc," \fA/D= %Ld\n", AD0);
+D <! 
+D <! //if (tcl_baixo_press)
+D <! //printf(lcd_putc,"\f tcl baixo press");
+D <! // if (tcl_enter_press) printf(lcd_putc,"\ftcl_enter_press");
+I !> if (tcl_cima_press) printf(lcd_putc,"\ftcl_cima press");
+I !> if (tcl_baixo_press) printf(lcd_putc,"\f tcl baixo press");
+I !> if (tcl_enter_press) printf(lcd_putc,"\ftcl_enter_press");
+  if (tcl_enter_press)
+  abre_valv;
+  if (tcl_baixo_press)
+  fecha_valv;
+  
+  }
+  
+  }
+  

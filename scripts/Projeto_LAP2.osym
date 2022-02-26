@@ -1,0 +1,50 @@
+_RETURN_
+CCP_1
+CCP_1_LOW
+CCP_1_HIGH
+CCP_2
+CCP_2_LOW
+CCP_2_HIGH
+PSP_DATA
+C1OUT
+C2OUT
+LCD_INIT_STRING
+tcl_cima_press
+tcl_baixo_press
+tcl_enter_press
+filtro1
+filtro3
+filtro2
+state
+set_point_on
+set_point_off
+aux
+aux1
+umi
+tempamb
+
+Project Directory:
+    C:\Users\User\Desktop\LAP2\Projeto_Final\Projeto_Final\Projeto_novo\
+
+Project Files:
+    Projeto_LAP2.c
+    ..\..\..\..\..\..\..\Program Files\PICC\devices\18F4550.h
+    driver_lcd.c
+
+Units:
+    Projeto_LAP2.c (main)
+
+Compiler Settings:
+    Processor:      PIC18F4550
+    Pointer Size:   16
+    ADC Range:      0-1023
+    Opt Level:      9
+    Short,Int,Long: UNSIGNED: 1,8,16
+    Float,Double:   32,32
+    Output file:    Relocatable
+
+Output Files:
+    Errors:      Projeto_LAP2.err
+    Ext Symbols: Projeto_LAP2.esym
+    Object:      Projeto_LAP2.o
+    Symbols:     Projeto_LAP2.osym

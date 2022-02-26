@@ -1,0 +1,3 @@
+>>> Warning 202 "Projeto_LAP2.c" Line 35(5,10): Variable never used:   state
+      Memory usage:   ROM=14%      RAM=5% - 12%
+      0 Errors,  1 Warnings.
